@@ -1,0 +1,415 @@
+/* ==========================================================
+   GoalDocs — Goal Sheet & Action Plan
+   Screen UI is dark & modern; the sheets themselves stay
+   print-exact A4 (black on white) so PDF output matches the
+   original templates.
+   ========================================================== */
+
+:root{
+  --bg:#11131a;
+  --bg-2:#171a23;
+  --bg-3:#1e222d;
+  --line:#2a2f3d;
+  --line-2:#353c4d;
+  --text:#e7eaf1;
+  --muted:#9aa3b7;
+  --accent:#e8a33d;
+  --accent-2:#f4c46a;
+  --radius:10px;
+  --sheet-w:210mm;
+  --sheet-h:297mm;
+}
+
+*{box-sizing:border-box;}
+
+html,body{height:100%;}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+
+.hidden{display:none !important;}
+
+/* ---------------------- TOP BAR ---------------------- */
+.topbar{
+  height:58px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:0 18px;
+  background:var(--bg-2);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:30;
+}
+
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#c9762a);
+  color:#1a1206;font-weight:800;font-size:12px;
+  display:grid;place-items:center;letter-spacing:.5px;
+}
+.brand-text{font-weight:700;letter-spacing:.2px;}
+
+.tabs{display:flex;gap:4px;background:var(--bg-3);padding:4px;border-radius:9px;}
+.tab{
+  appearance:none;border:0;cursor:pointer;
+  background:transparent;color:var(--muted);
+  font:inherit;font-weight:600;font-size:13px;
+  padding:7px 16px;border-radius:6px;
+  transition:background .15s,color .15s;
+}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--accent);color:#1a1206;}
+
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+.save-hint{
+  font-size:12px;color:var(--muted);margin-right:6px;
+  opacity:0;transition:opacity .3s;
+}
+.save-hint.show{opacity:1;}
+
+.btn{
+  appearance:none;cursor:pointer;font:inherit;font-weight:600;font-size:13px;
+  padding:8px 14px;border-radius:8px;border:1px solid var(--line-2);
+  background:var(--bg-3);color:var(--text);
+  transition:border-color .15s,background .15s,transform .05s;
+}
+.btn:hover{border-color:#4a5468;background:#242938;}
+.btn:active{transform:translateY(1px);}
+.btn-primary{
+  background:var(--accent);border-color:var(--accent);color:#1a1206;
+}
+.btn-primary:hover{background:var(--accent-2);border-color:var(--accent-2);}
+.btn-ghost{background:transparent;}
+.btn-add{
+  width:100%;margin-top:8px;background:transparent;
+  border:1px dashed var(--line-2);color:var(--muted);font-size:12px;padding:8px;
+}
+.btn-add:hover{color:var(--accent);border-color:var(--accent);background:transparent;}
+
+/* ---------------------- LAYOUT ---------------------- */
+.workspace{
+  display:flex;
+  height:calc(100vh - 58px);
+  overflow:hidden;
+}
+
+/* ---------------------- PANEL ---------------------- */
+.panel{
+  width:360px;
+  flex:0 0 360px;
+  background:var(--bg-2);
+  border-right:1px solid var(--line);
+  overflow-y:auto;
+  padding:20px 18px 60px;
+}
+
+.panel-title{
+  margin:0 0 18px;font-size:16px;font-weight:700;letter-spacing:.2px;
+}
+
+.field-group{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:14px;
+  background:var(--bg-3);
+}
+.group-label{
+  font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+}
+.group-hint{
+  font-size:10px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);
+}
+
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:600;}
+label:last-child{margin-bottom:0;}
+label.inline{display:flex;align-items:center;gap:8px;margin:0;white-space:nowrap;}
+
+input[type=text],input[type=number],input[type=date]{
+  display:block;width:100%;margin-top:5px;
+  background:#0e1017;color:var(--text);
+  border:1px solid var(--line-2);border-radius:7px;
+  padding:8px 10px;font:inherit;font-size:13px;font-weight:500;
+  transition:border-color .15s;
+}
+label.inline input{margin-top:0;width:70px;}
+input:focus{outline:none;border-color:var(--accent);}
+input::placeholder{color:#5b6478;}
+
+.row-3{display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;}
+.row-3 label{margin:0;}
+.row-tools{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.row-tools .btn-add{width:auto;margin:0;padding:7px 10px;}
+
+.repeat-list{display:flex;flex-direction:column;gap:10px;}
+
+.repeat-item{
+  border:1px solid var(--line-2);border-radius:8px;padding:10px;
+  background:#0e1017;position:relative;
+}
+.repeat-head{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;
+}
+.del{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  color:#7c8598;font-size:15px;line-height:1;padding:2px 5px;border-radius:5px;
+}
+.del:hover{color:#ff6b6b;background:rgba(255,107,107,.1);}
+
+.repeat-list.rows{gap:6px;max-height:none;}
+.row-item{
+  display:grid;grid-template-columns:26px 1fr 116px 24px;
+  gap:6px;align-items:center;
+}
+.row-item .rn{
+  font-size:11px;color:var(--muted);text-align:right;font-weight:700;
+}
+.row-item input{margin-top:0;padding:6px 8px;font-size:12px;}
+
+/* ---------------------- PREVIEW ---------------------- */
+.preview{
+  flex:1;
+  overflow:auto;
+  background:
+    radial-gradient(circle at 25% 0%, #1b1f2b 0%, transparent 55%),
+    var(--bg);
+  padding:26px 26px 60px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.zoom-bar{
+  display:flex;align-items:center;gap:6px;margin-bottom:18px;
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:8px;padding:5px 8px;
+  font-size:12px;color:var(--muted);
+  position:sticky;top:0;z-index:10;
+}
+.zbtn{
+  appearance:none;border:1px solid var(--line-2);background:var(--bg-3);
+  color:var(--text);cursor:pointer;font:inherit;font-size:12px;font-weight:600;
+  border-radius:6px;padding:3px 9px;
+}
+.zbtn:hover{border-color:var(--accent);color:var(--accent);}
+#zoomLabel{min-width:44px;text-align:center;font-weight:600;color:var(--text);}
+
+.paper-scaler{
+  transform-origin:top center;
+}
+
+/* ---------------------- THE SHEET (A4) ---------------------- */
+.sheet{
+  width:var(--sheet-w);
+  min-height:var(--sheet-h);
+  background:#fff;
+  color:#000;
+  font-family:Arial,Helvetica,"Liberation Sans",sans-serif;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+  position:relative;
+}
+
+/* editable text: subtle affordance on screen only */
+[contenteditable]{outline:none;}
+[contenteditable]:hover{background:rgba(232,163,61,.10);}
+[contenteditable]:focus{background:rgba(232,163,61,.18);}
+[contenteditable]:empty::before{
+  content:attr(data-ph);
+  color:#b9b9b9;
+  font-weight:inherit;
+}
+
+/* ===== GOAL SHEET ===== */
+.sheet-frame{
+  margin:14mm;
+  border:1.1pt solid #000;
+  min-height:calc(var(--sheet-h) - 28mm);
+  padding:12mm 10mm 8mm;
+  display:flex;
+  flex-direction:column;
+}
+
+.gs-head{text-align:center;}
+.gs-title{
+  margin:0;font-size:30pt;font-weight:700;letter-spacing:.5pt;line-height:1.05;
+}
+.gs-byline{
+  margin:2mm 0 0;font-size:10.5pt;font-weight:400;letter-spacing:.3pt;
+}
+
+.gs-goal{text-align:center;margin-top:12mm;}
+.gs-goalline{
+  margin:0;font-size:19pt;font-weight:700;letter-spacing:.3pt;
+}
+.gs-duration{
+  margin-top:3mm;font-size:29pt;font-weight:700;letter-spacing:.5pt;
+}
+
+.gs-rule{
+  border:0;border-top:1.1pt solid #000;
+  width:78%;margin:7mm auto 0;
+}
+
+.gs-target{
+  margin:9mm auto 0;
+  width:88%;
+  border:1.1pt solid #000;
+  border-radius:3mm;
+  text-align:center;
+  font-size:17pt;font-weight:700;letter-spacing:.3pt;
+  padding:7mm 5mm;
+}
+
+.gs-action-label{
+  text-align:center;
+  margin-top:16mm;
+  font-size:14pt;font-weight:700;letter-spacing:.5pt;
+}
+
+.gs-blocks{
+  margin-top:6mm;
+  display:flex;
+  flex-direction:column;
+  gap:5mm;
+}
+
+.gs-block{
+  border:1.1pt solid #000;
+  border-radius:3mm;
+  padding:5mm 6mm;
+}
+.gs-block-top{
+  font-size:12.5pt;font-weight:700;letter-spacing:.2pt;
+  margin-bottom:2mm;
+}
+.gs-block-bot{
+  display:flex;justify-content:space-between;align-items:baseline;gap:6mm;
+  font-size:9.5pt;font-weight:700;letter-spacing:.2pt;
+}
+.gs-block-bot .right{text-align:right;}
+
+.gs-foot{margin-top:auto;padding-top:10mm;}
+.gs-foot-rule{
+  border:0;border-top:1.1pt solid #000;
+  width:66%;margin:0 auto 3mm;
+}
+.gs-quote{
+  text-align:center;
+  font-size:9.5pt;font-weight:700;font-style:italic;letter-spacing:.2pt;
+}
+
+/* ===== ACTION PLAN ===== */
+.sheet-pad{padding:16mm 14mm;}
+
+.ap-title{
+  margin:0;text-align:center;
+  font-size:19pt;font-weight:700;letter-spacing:.3pt;
+}
+.ap-subtitle{
+  margin:3mm 0 0;text-align:center;
+  font-size:13pt;font-weight:700;letter-spacing:.3pt;
+}
+
+.ap-meta{
+  margin-top:9mm;
+  display:flex;align-items:baseline;gap:4mm;
+  font-size:11pt;font-weight:700;letter-spacing:.3pt;
+}
+.ap-meta-action{margin-top:6mm;margin-bottom:3mm;}
+.ap-meta .ap-value{font-weight:400;flex:1;min-height:1em;}
+
+.ap-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.ap-table th,.ap-table td{
+  border:.85pt solid #000;
+  padding:0;
+}
+.ap-table th{
+  font-size:9.5pt;font-weight:700;letter-spacing:.3pt;
+  text-align:center;
+  padding:1.4mm 1mm;
+}
+.ap-table .c-no{width:16mm;}
+.ap-table .c-date{width:40mm;}
+
+.ap-table td{height:8.2mm;vertical-align:middle;}
+.ap-table td.t-no{
+  text-align:right;padding:0 2mm;
+  font-size:9.5pt;font-weight:400;
+}
+.ap-table td.t-task,.ap-table td.t-date{
+  padding:0 2mm;
+  font-size:9.5pt;font-weight:700;
+}
+.ap-table td.t-date{text-align:center;font-weight:400;}
+
+/* ---------------------- PRINT / PDF ---------------------- */
+@page{
+  size:A4;
+  margin:0;
+}
+
+@media print{
+  html,body{
+    height:auto;background:#fff;color:#000;
+  }
+  .no-print{display:none !important;}
+  .workspace{display:block;height:auto;overflow:visible;}
+  .preview{
+    padding:0 !important;margin:0;background:#fff;display:block;overflow:visible;
+  }
+  .paper-scaler{transform:none !important;}
+  .sheet{
+    width:210mm;
+    height:auto;
+    min-height:0;
+    box-shadow:none;
+    margin:0;
+  }
+  /* The goal sheet is a fixed one-pager: 1mm of slack keeps sub-pixel
+     rounding from spilling onto a second, blank page. */
+  #sheet-goal{
+    min-height:296mm;
+    max-height:296mm;
+    overflow:hidden;
+    page-break-after:avoid;
+    break-after:avoid;
+  }
+  #sheet-goal .sheet-frame{
+    min-height:calc(296mm - 28mm);
+  }
+  /* The action plan may legitimately run onto a second page. */
+  #sheet-plan{page-break-after:auto;}
+  .paper-scaler{height:auto !important;}
+  .zoom-bar{display:none !important;}
+  [contenteditable]:hover,[contenteditable]:focus{background:transparent !important;}
+  [contenteditable]:empty::before{content:"" !important;}
+  .ap-table{page-break-inside:auto;}
+  .ap-table tr{page-break-inside:avoid;}
+}
+
+/* ---------------------- RESPONSIVE ---------------------- */
+@media screen and (max-width:1100px){
+  .workspace{flex-direction:column;height:auto;overflow:visible;}
+  .panel{width:100%;flex:none;border-right:0;border-bottom:1px solid var(--line);max-height:none;}
+  .preview{padding:18px 12px 50px;}
+  .topbar{flex-wrap:wrap;height:auto;padding:10px 14px;gap:12px;}
+  .topbar-actions{margin-left:0;width:100%;justify-content:flex-start;flex-wrap:wrap;}
+}

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoalDocs — Goal Sheet &amp; Action Plan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar no-print">
+  <div class="brand">
+    <span class="brand-mark">GD</span>
+    <span class="brand-text">GoalDocs</span>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-doc="goal" role="tab">Goal Sheet</button>
+    <button class="tab" data-doc="plan" role="tab">Action Plan</button>
+  </nav>
+
+  <div class="topbar-actions">
+    <span class="save-hint" id="saveHint">Saved</span>
+    <button class="btn btn-ghost" id="btnLoad">Import</button>
+    <button class="btn btn-ghost" id="btnSave">Backup</button>
+    <button class="btn btn-ghost" id="btnReset">Reset</button>
+    <button class="btn btn-primary" id="btnPdf">Export PDF</button>
+    <input type="file" id="fileInput" accept="application/json" hidden>
+  </div>
+</header>
+
+<main class="workspace">
+
+  <!-- ===================== EDITOR PANEL ===================== -->
+  <aside class="panel no-print" id="panel">
+
+    <!-- ---------- GOAL SHEET FORM ---------- -->
+    <section class="form" id="form-goal">
+      <h2 class="panel-title">Goal Sheet</h2>
+
+      <div class="field-group">
+        <div class="group-label">Header</div>
+        <label>Title <input type="text" data-bind="g.title" placeholder="THE GDS"></label>
+        <label>Byline <input type="text" data-bind="g.byline" placeholder="BY GAUTAM NAGRECHA"></label>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Goal</div>
+        <label>Goal line <input type="text" data-bind="g.goalLine" placeholder="DIWALI 2026 GOAL"></label>
+        <label>Duration <input type="text" data-bind="g.duration" placeholder="51 DAYS"></label>
+        <label>Target box <input type="text" data-bind="g.target" placeholder="50000000/- TURNOVERS"></label>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Action blocks</div>
+        <div id="blockList" class="repeat-list"></div>
+        <button class="btn btn-add" id="addBlock">+ Add action block</button>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Footer</div>
+        <label>Footer quote <input type="text" data-bind="g.footer" placeholder="IF THERE IS A WILL, THERE IS A WAY."></label>
+      </div>
+    </section>
+
+    <!-- ---------- ACTION PLAN FORM ---------- -->
+    <section class="form hidden" id="form-plan">
+      <h2 class="panel-title">Action Plan</h2>
+
+      <div class="field-group">
+        <div class="group-label">Header</div>
+        <label>Title <input type="text" data-bind="p.title" placeholder="ACTION PLAN FOR GOAL"></label>
+        <label>Subtitle <input type="text" data-bind="p.subtitle" placeholder="31 OCTOBER 2026"></label>
+        <label>Goal label <input type="text" data-bind="p.goalLabel" placeholder="GOAL"></label>
+        <label>Goal value <input type="text" data-bind="p.goalValue" placeholder="e.g. 50000000/- TURNOVER"></label>
+        <label>Action label <input type="text" data-bind="p.actionLabel" placeholder="ACTION"></label>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Column headings</div>
+        <div class="row-3">
+          <label>No. <input type="text" data-bind="p.colNo" placeholder="NO."></label>
+          <label>Task <input type="text" data-bind="p.colTask" placeholder="TASK"></label>
+          <label>Date <input type="text" data-bind="p.colDate" placeholder="COMPLETE DATE"></label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">
+          Rows
+          <span class="group-hint">Type directly in the sheet too</span>
+        </div>
+        <div class="row-tools">
+          <label class="inline">Row count
+            <input type="number" id="rowCount" min="1" max="60" value="25">
+          </label>
+          <button class="btn btn-add" id="addRow">+ Add row</button>
+          <button class="btn btn-add" id="fillDefault">Fill "1 TO 1"</button>
+        </div>
+        <div id="rowList" class="repeat-list rows"></div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ===================== PREVIEW ===================== -->
+  <div class="preview" id="preview">
+    <div class="zoom-bar no-print">
+      <button class="zbtn" id="zoomOut">−</button>
+      <span id="zoomLabel">100%</span>
+      <button class="zbtn" id="zoomIn">+</button>
+      <button class="zbtn" id="zoomFit">Fit</button>
+    </div>
+
+    <div class="paper-scaler" id="scaler">
+
+      <!-- ---------- SHEET: GOAL ---------- -->
+      <article class="sheet" id="sheet-goal">
+        <div class="sheet-frame">
+          <div class="gs-head">
+            <h1 class="gs-title" contenteditable="true" data-edit="g.title">THE GDS</h1>
+            <p class="gs-byline" contenteditable="true" data-edit="g.byline">BY GAUTAM NAGRECHA</p>
+          </div>
+
+          <div class="gs-goal">
+            <h2 class="gs-goalline" contenteditable="true" data-edit="g.goalLine">DIWALI 2026 GOAL</h2>
+            <div class="gs-duration" contenteditable="true" data-edit="g.duration">51 DAYS</div>
+          </div>
+
+          <hr class="gs-rule">
+
+          <div class="gs-target" contenteditable="true" data-edit="g.target">50000000/- TURNOVERS</div>
+
+          <div class="gs-action-label" contenteditable="true" data-edit="g.actionLabel">ACTION</div>
+
+          <div class="gs-blocks" id="sheetBlocks"></div>
+
+          <div class="gs-foot">
+            <hr class="gs-foot-rule">
+            <div class="gs-quote" contenteditable="true" data-edit="g.footer">IF THERE IS A WILL, THERE IS A WAY.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ---------- SHEET: PLAN ---------- -->
+      <article class="sheet hidden" id="sheet-plan">
+        <div class="sheet-pad">
+          <h1 class="ap-title" contenteditable="true" data-edit="p.title">ACTION PLAN FOR GOAL</h1>
+          <p class="ap-subtitle" contenteditable="true" data-edit="p.subtitle">31 OCTOBER 2026</p>
+
+          <div class="ap-meta">
+            <span class="ap-label" contenteditable="true" data-edit="p.goalLabel">GOAL</span>
+            <span class="ap-value" contenteditable="true" data-edit="p.goalValue"></span>
+          </div>
+
+          <div class="ap-meta ap-meta-action">
+            <span class="ap-label" contenteditable="true" data-edit="p.actionLabel">ACTION</span>
+          </div>
+
+          <table class="ap-table">
+            <thead>
+              <tr>
+                <th class="c-no" contenteditable="true" data-edit="p.colNo">NO.</th>
+                <th class="c-task" contenteditable="true" data-edit="p.colTask">TASK</th>
+                <th class="c-date" contenteditable="true" data-edit="p.colDate">COMPLETE DATE</th>
+              </tr>
+            </thead>
+            <tbody id="sheetRows"></tbody>
+          </table>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

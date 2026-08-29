@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoalDocs — Goal Sheet &amp; Action Plan</title>
+<style>
+/* ==========================================================
+   GoalDocs — Goal Sheet & Action Plan
+   Screen UI is dark & modern; the sheets themselves stay
+   print-exact A4 (black on white) so PDF output matches the
+   original templates.
+   ========================================================== */
+
+:root{
+  --bg:#11131a;
+  --bg-2:#171a23;
+  --bg-3:#1e222d;
+  --line:#2a2f3d;
+  --line-2:#353c4d;
+  --text:#e7eaf1;
+  --muted:#9aa3b7;
+  --accent:#e8a33d;
+  --accent-2:#f4c46a;
+  --radius:10px;
+  --sheet-w:210mm;
+  --sheet-h:297mm;
+}
+
+*{box-sizing:border-box;}
+
+html,body{height:100%;}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+
+.hidden{display:none !important;}
+
+/* ---------------------- TOP BAR ---------------------- */
+.topbar{
+  height:58px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:0 18px;
+  background:var(--bg-2);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:30;
+}
+
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{
+  width:30px;height:30px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#c9762a);
+  color:#1a1206;font-weight:800;font-size:12px;
+  display:grid;place-items:center;letter-spacing:.5px;
+}
+.brand-text{font-weight:700;letter-spacing:.2px;}
+
+.tabs{display:flex;gap:4px;background:var(--bg-3);padding:4px;border-radius:9px;}
+.tab{
+  appearance:none;border:0;cursor:pointer;
+  background:transparent;color:var(--muted);
+  font:inherit;font-weight:600;font-size:13px;
+  padding:7px 16px;border-radius:6px;
+  transition:background .15s,color .15s;
+}
+.tab:hover{color:var(--text);}
+.tab.active{background:var(--accent);color:#1a1206;}
+
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
+
+.save-hint{
+  font-size:12px;color:var(--muted);margin-right:6px;
+  opacity:0;transition:opacity .3s;
+}
+.save-hint.show{opacity:1;}
+
+.btn{
+  appearance:none;cursor:pointer;font:inherit;font-weight:600;font-size:13px;
+  padding:8px 14px;border-radius:8px;border:1px solid var(--line-2);
+  background:var(--bg-3);color:var(--text);
+  transition:border-color .15s,background .15s,transform .05s;
+}
+.btn:hover{border-color:#4a5468;background:#242938;}
+.btn:active{transform:translateY(1px);}
+.btn-primary{
+  background:var(--accent);border-color:var(--accent);color:#1a1206;
+}
+.btn-primary:hover{background:var(--accent-2);border-color:var(--accent-2);}
+.btn-ghost{background:transparent;}
+.btn-add{
+  width:100%;margin-top:8px;background:transparent;
+  border:1px dashed var(--line-2);color:var(--muted);font-size:12px;padding:8px;
+}
+.btn-add:hover{color:var(--accent);border-color:var(--accent);background:transparent;}
+
+/* ---------------------- LAYOUT ---------------------- */
+.workspace{
+  display:flex;
+  height:calc(100vh - 58px);
+  overflow:hidden;
+}
+
+/* ---------------------- PANEL ---------------------- */
+.panel{
+  width:360px;
+  flex:0 0 360px;
+  background:var(--bg-2);
+  border-right:1px solid var(--line);
+  overflow-y:auto;
+  padding:20px 18px 60px;
+}
+
+.panel-title{
+  margin:0 0 18px;font-size:16px;font-weight:700;letter-spacing:.2px;
+}
+
+.field-group{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:14px;
+  background:var(--bg-3);
+}
+.group-label{
+  font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+}
+.group-hint{
+  font-size:10px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);
+}
+
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:600;}
+label:last-child{margin-bottom:0;}
+label.inline{display:flex;align-items:center;gap:8px;margin:0;white-space:nowrap;}
+
+input[type=text],input[type=number],input[type=date]{
+  display:block;width:100%;margin-top:5px;
+  background:#0e1017;color:var(--text);
+  border:1px solid var(--line-2);border-radius:7px;
+  padding:8px 10px;font:inherit;font-size:13px;font-weight:500;
+  transition:border-color .15s;
+}
+label.inline input{margin-top:0;width:70px;}
+input:focus{outline:none;border-color:var(--accent);}
+input::placeholder{color:#5b6478;}
+
+.row-3{display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;}
+.row-3 label{margin:0;}
+.row-tools{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.row-tools .btn-add{width:auto;margin:0;padding:7px 10px;}
+
+.repeat-list{display:flex;flex-direction:column;gap:10px;}
+
+.repeat-item{
+  border:1px solid var(--line-2);border-radius:8px;padding:10px;
+  background:#0e1017;position:relative;
+}
+.repeat-head{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;
+}
+.del{
+  appearance:none;border:0;background:transparent;cursor:pointer;
+  color:#7c8598;font-size:15px;line-height:1;padding:2px 5px;border-radius:5px;
+}
+.del:hover{color:#ff6b6b;background:rgba(255,107,107,.1);}
+
+.repeat-list.rows{gap:6px;max-height:none;}
+.row-item{
+  display:grid;grid-template-columns:26px 1fr 116px 24px;
+  gap:6px;align-items:center;
+}
+.row-item .rn{
+  font-size:11px;color:var(--muted);text-align:right;font-weight:700;
+}
+.row-item input{margin-top:0;padding:6px 8px;font-size:12px;}
+
+/* ---------------------- PREVIEW ---------------------- */
+.preview{
+  flex:1;
+  overflow:auto;
+  background:
+    radial-gradient(circle at 25% 0%, #1b1f2b 0%, transparent 55%),
+    var(--bg);
+  padding:26px 26px 60px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.zoom-bar{
+  display:flex;align-items:center;gap:6px;margin-bottom:18px;
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:8px;padding:5px 8px;
+  font-size:12px;color:var(--muted);
+  position:sticky;top:0;z-index:10;
+}
+.zbtn{
+  appearance:none;border:1px solid var(--line-2);background:var(--bg-3);
+  color:var(--text);cursor:pointer;font:inherit;font-size:12px;font-weight:600;
+  border-radius:6px;padding:3px 9px;
+}
+.zbtn:hover{border-color:var(--accent);color:var(--accent);}
+#zoomLabel{min-width:44px;text-align:center;font-weight:600;color:var(--text);}
+
+.paper-scaler{
+  transform-origin:top center;
+}
+
+/* ---------------------- THE SHEET (A4) ---------------------- */
+.sheet{
+  width:var(--sheet-w);
+  min-height:var(--sheet-h);
+  background:#fff;
+  color:#000;
+  font-family:Arial,Helvetica,"Liberation Sans",sans-serif;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+  position:relative;
+}
+
+/* editable text: subtle affordance on screen only */
+[contenteditable]{outline:none;}
+[contenteditable]:hover{background:rgba(232,163,61,.10);}
+[contenteditable]:focus{background:rgba(232,163,61,.18);}
+[contenteditable]:empty::before{
+  content:attr(data-ph);
+  color:#b9b9b9;
+  font-weight:inherit;
+}
+
+/* ===== GOAL SHEET ===== */
+.sheet-frame{
+  margin:14mm;
+  border:1.1pt solid #000;
+  min-height:calc(var(--sheet-h) - 28mm);
+  padding:12mm 10mm 8mm;
+  display:flex;
+  flex-direction:column;
+}
+
+.gs-head{text-align:center;}
+.gs-title{
+  margin:0;font-size:30pt;font-weight:700;letter-spacing:.5pt;line-height:1.05;
+}
+.gs-byline{
+  margin:2mm 0 0;font-size:10.5pt;font-weight:400;letter-spacing:.3pt;
+}
+
+.gs-goal{text-align:center;margin-top:12mm;}
+.gs-goalline{
+  margin:0;font-size:19pt;font-weight:700;letter-spacing:.3pt;
+}
+.gs-duration{
+  margin-top:3mm;font-size:29pt;font-weight:700;letter-spacing:.5pt;
+}
+
+.gs-rule{
+  border:0;border-top:1.1pt solid #000;
+  width:78%;margin:7mm auto 0;
+}
+
+.gs-target{
+  margin:9mm auto 0;
+  width:88%;
+  border:1.1pt solid #000;
+  border-radius:3mm;
+  text-align:center;
+  font-size:17pt;font-weight:700;letter-spacing:.3pt;
+  padding:7mm 5mm;
+}
+
+.gs-action-label{
+  text-align:center;
+  margin-top:16mm;
+  font-size:14pt;font-weight:700;letter-spacing:.5pt;
+}
+
+.gs-blocks{
+  margin-top:6mm;
+  display:flex;
+  flex-direction:column;
+  gap:5mm;
+}
+
+.gs-block{
+  border:1.1pt solid #000;
+  border-radius:3mm;
+  padding:5mm 6mm;
+}
+.gs-block-top{
+  font-size:12.5pt;font-weight:700;letter-spacing:.2pt;
+  margin-bottom:2mm;
+}
+.gs-block-bot{
+  display:flex;justify-content:space-between;align-items:baseline;gap:6mm;
+  font-size:9.5pt;font-weight:700;letter-spacing:.2pt;
+}
+.gs-block-bot .right{text-align:right;}
+
+.gs-foot{margin-top:auto;padding-top:10mm;}
+.gs-foot-rule{
+  border:0;border-top:1.1pt solid #000;
+  width:66%;margin:0 auto 3mm;
+}
+.gs-quote{
+  text-align:center;
+  font-size:9.5pt;font-weight:700;font-style:italic;letter-spacing:.2pt;
+}
+
+/* ===== ACTION PLAN ===== */
+.sheet-pad{padding:16mm 14mm;}
+
+.ap-title{
+  margin:0;text-align:center;
+  font-size:19pt;font-weight:700;letter-spacing:.3pt;
+}
+.ap-subtitle{
+  margin:3mm 0 0;text-align:center;
+  font-size:13pt;font-weight:700;letter-spacing:.3pt;
+}
+
+.ap-meta{
+  margin-top:9mm;
+  display:flex;align-items:baseline;gap:4mm;
+  font-size:11pt;font-weight:700;letter-spacing:.3pt;
+}
+.ap-meta-action{margin-top:6mm;margin-bottom:3mm;}
+.ap-meta .ap-value{font-weight:400;flex:1;min-height:1em;}
+
+.ap-table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.ap-table th,.ap-table td{
+  border:.85pt solid #000;
+  padding:0;
+}
+.ap-table th{
+  font-size:9.5pt;font-weight:700;letter-spacing:.3pt;
+  text-align:center;
+  padding:1.4mm 1mm;
+}
+.ap-table .c-no{width:16mm;}
+.ap-table .c-date{width:40mm;}
+
+.ap-table td{height:8.2mm;vertical-align:middle;}
+.ap-table td.t-no{
+  text-align:right;padding:0 2mm;
+  font-size:9.5pt;font-weight:400;
+}
+.ap-table td.t-task,.ap-table td.t-date{
+  padding:0 2mm;
+  font-size:9.5pt;font-weight:700;
+}
+.ap-table td.t-date{text-align:center;font-weight:400;}
+
+/* ---------------------- PRINT / PDF ---------------------- */
+@page{
+  size:A4;
+  margin:0;
+}
+
+@media print{
+  html,body{
+    height:auto;background:#fff;color:#000;
+  }
+  .no-print{display:none !important;}
+  .workspace{display:block;height:auto;overflow:visible;}
+  .preview{
+    padding:0 !important;margin:0;background:#fff;display:block;overflow:visible;
+  }
+  .paper-scaler{transform:none !important;}
+  .sheet{
+    width:210mm;
+    height:auto;
+    min-height:0;
+    box-shadow:none;
+    margin:0;
+  }
+  /* The goal sheet is a fixed one-pager: 1mm of slack keeps sub-pixel
+     rounding from spilling onto a second, blank page. */
+  #sheet-goal{
+    min-height:296mm;
+    max-height:296mm;
+    overflow:hidden;
+    page-break-after:avoid;
+    break-after:avoid;
+  }
+  #sheet-goal .sheet-frame{
+    min-height:calc(296mm - 28mm);
+  }
+  /* The action plan may legitimately run onto a second page. */
+  #sheet-plan{page-break-after:auto;}
+  .paper-scaler{height:auto !important;}
+  .zoom-bar{display:none !important;}
+  [contenteditable]:hover,[contenteditable]:focus{background:transparent !important;}
+  [contenteditable]:empty::before{content:"" !important;}
+  .ap-table{page-break-inside:auto;}
+  .ap-table tr{page-break-inside:avoid;}
+}
+
+/* ---------------------- RESPONSIVE ---------------------- */
+@media screen and (max-width:1100px){
+  .workspace{flex-direction:column;height:auto;overflow:visible;}
+  .panel{width:100%;flex:none;border-right:0;border-bottom:1px solid var(--line);max-height:none;}
+  .preview{padding:18px 12px 50px;}
+  .topbar{flex-wrap:wrap;height:auto;padding:10px 14px;gap:12px;}
+  .topbar-actions{margin-left:0;width:100%;justify-content:flex-start;flex-wrap:wrap;}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ===================== TOP BAR ===================== -->
+<header class="topbar no-print">
+  <div class="brand">
+    <span class="brand-mark">GD</span>
+    <span class="brand-text">GoalDocs</span>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-doc="goal" role="tab">Goal Sheet</button>
+    <button class="tab" data-doc="plan" role="tab">Action Plan</button>
+  </nav>
+
+  <div class="topbar-actions">
+    <span class="save-hint" id="saveHint">Saved</span>
+    <button class="btn btn-ghost" id="btnLoad">Import</button>
+    <button class="btn btn-ghost" id="btnSave">Backup</button>
+    <button class="btn btn-ghost" id="btnReset">Reset</button>
+    <button class="btn btn-primary" id="btnPdf">Export PDF</button>
+    <input type="file" id="fileInput" accept="application/json" hidden>
+  </div>
+</header>
+
+<main class="workspace">
+
+  <!-- ===================== EDITOR PANEL ===================== -->
+  <aside class="panel no-print" id="panel">
+
+    <!-- ---------- GOAL SHEET FORM ---------- -->
+    <section class="form" id="form-goal">
+      <h2 class="panel-title">Goal Sheet</h2>
+
+      <div class="field-group">
+        <div class="group-label">Header</div>
+        <label>Title <input type="text" data-bind="g.title" placeholder="THE GDS"></label>
+        <label>Byline <input type="text" data-bind="g.byline" placeholder="BY GAUTAM NAGRECHA"></label>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Goal</div>
+        <label>Goal line <input type="text" data-bind="g.goalLine" placeholder="DIWALI 2026 GOAL"></label>
+        <label>Duration <input type="text" data-bind="g.duration" placeholder="51 DAYS"></label>
+        <label>Target box <input type="text" data-bind="g.target" placeholder="50000000/- TURNOVERS"></label>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Action blocks</div>
+        <div id="blockList" class="repeat-list"></div>
+        <button class="btn btn-add" id="addBlock">+ Add action block</button>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Footer</div>
+        <label>Footer quote <input type="text" data-bind="g.footer" placeholder="IF THERE IS A WILL, THERE IS A WAY."></label>
+      </div>
+    </section>
+
+    <!-- ---------- ACTION PLAN FORM ---------- -->
+    <section class="form hidden" id="form-plan">
+      <h2 class="panel-title">Action Plan</h2>
+
+      <div class="field-group">
+        <div class="group-label">Header</div>
+        <label>Title <input type="text" data-bind="p.title" placeholder="ACTION PLAN FOR GOAL"></label>
+        <label>Subtitle <input type="text" data-bind="p.subtitle" placeholder="31 OCTOBER 2026"></label>
+        <label>Goal label <input type="text" data-bind="p.goalLabel" placeholder="GOAL"></label>
+        <label>Goal value <input type="text" data-bind="p.goalValue" placeholder="e.g. 50000000/- TURNOVER"></label>
+        <label>Action label <input type="text" data-bind="p.actionLabel" placeholder="ACTION"></label>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">Column headings</div>
+        <div class="row-3">
+          <label>No. <input type="text" data-bind="p.colNo" placeholder="NO."></label>
+          <label>Task <input type="text" data-bind="p.colTask" placeholder="TASK"></label>
+          <label>Date <input type="text" data-bind="p.colDate" placeholder="COMPLETE DATE"></label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="group-label">
+          Rows
+          <span class="group-hint">Type directly in the sheet too</span>
+        </div>
+        <div class="row-tools">
+          <label class="inline">Row count
+            <input type="number" id="rowCount" min="1" max="60" value="25">
+          </label>
+          <button class="btn btn-add" id="addRow">+ Add row</button>
+          <button class="btn btn-add" id="fillDefault">Fill "1 TO 1"</button>
+        </div>
+        <div id="rowList" class="repeat-list rows"></div>
+      </div>
+    </section>
+  </aside>
+
+  <!-- ===================== PREVIEW ===================== -->
+  <div class="preview" id="preview">
+    <div class="zoom-bar no-print">
+      <button class="zbtn" id="zoomOut">−</button>
+      <span id="zoomLabel">100%</span>
+      <button class="zbtn" id="zoomIn">+</button>
+      <button class="zbtn" id="zoomFit">Fit</button>
+    </div>
+
+    <div class="paper-scaler" id="scaler">
+
+      <!-- ---------- SHEET: GOAL ---------- -->
+      <article class="sheet" id="sheet-goal">
+        <div class="sheet-frame">
+          <div class="gs-head">
+            <h1 class="gs-title" contenteditable="true" data-edit="g.title">THE GDS</h1>
+            <p class="gs-byline" contenteditable="true" data-edit="g.byline">BY GAUTAM NAGRECHA</p>
+          </div>
+
+          <div class="gs-goal">
+            <h2 class="gs-goalline" contenteditable="true" data-edit="g.goalLine">DIWALI 2026 GOAL</h2>
+            <div class="gs-duration" contenteditable="true" data-edit="g.duration">51 DAYS</div>
+          </div>
+
+          <hr class="gs-rule">
+
+          <div class="gs-target" contenteditable="true" data-edit="g.target">50000000/- TURNOVERS</div>
+
+          <div class="gs-action-label" contenteditable="true" data-edit="g.actionLabel">ACTION</div>
+
+          <div class="gs-blocks" id="sheetBlocks"></div>
+
+          <div class="gs-foot">
+            <hr class="gs-foot-rule">
+            <div class="gs-quote" contenteditable="true" data-edit="g.footer">IF THERE IS A WILL, THERE IS A WAY.</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ---------- SHEET: PLAN ---------- -->
+      <article class="sheet hidden" id="sheet-plan">
+        <div class="sheet-pad">
+          <h1 class="ap-title" contenteditable="true" data-edit="p.title">ACTION PLAN FOR GOAL</h1>
+          <p class="ap-subtitle" contenteditable="true" data-edit="p.subtitle">31 OCTOBER 2026</p>
+
+          <div class="ap-meta">
+            <span class="ap-label" contenteditable="true" data-edit="p.goalLabel">GOAL</span>
+            <span class="ap-value" contenteditable="true" data-edit="p.goalValue"></span>
+          </div>
+
+          <div class="ap-meta ap-meta-action">
+            <span class="ap-label" contenteditable="true" data-edit="p.actionLabel">ACTION</span>
+          </div>
+
+          <table class="ap-table">
+            <thead>
+              <tr>
+                <th class="c-no" contenteditable="true" data-edit="p.colNo">NO.</th>
+                <th class="c-task" contenteditable="true" data-edit="p.colTask">TASK</th>
+                <th class="c-date" contenteditable="true" data-edit="p.colDate">COMPLETE DATE</th>
+              </tr>
+            </thead>
+            <tbody id="sheetRows"></tbody>
+          </table>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</main>
+
+<script>
+/* ==========================================================
+   GoalDocs — app.js
+   Two-way binding between the editor panel and the live A4
+   sheet, autosave to localStorage, JSON backup/import,
+   and print-to-PDF export.
+   ========================================================== */
+
+(function () {
+  'use strict';
+
+  const STORE_KEY = 'goaldocs.v1';
+
+  /* ---------------- default document ---------------- */
+  const DEFAULTS = {
+    doc: 'goal',
+    g: {
+      title: 'THE GDS',
+      byline: 'BY GAUTAM NAGRECHA',
+      goalLine: 'DIWALI 2026 GOAL',
+      duration: '51 DAYS',
+      target: '50000000/- TURNOVERS',
+      actionLabel: 'ACTION',
+      footer: 'IF THERE IS A WILL, THERE IS A WAY.',
+      blocks: [
+        { top: '25 (1 TO 1)', left: '3 CLIENT', right: '30000000/- TURNOVER' },
+        { top: '110 CALL',    left: '2 CLIENT', right: '20000000/- TURNOVER' }
+      ]
+    },
+    p: {
+      title: 'ACTION PLAN FOR GOAL',
+      subtitle: '31 OCTOBER 2026',
+      goalLabel: 'GOAL',
+      goalValue: '',
+      actionLabel: 'ACTION',
+      colNo: 'NO.',
+      colTask: 'TASK',
+      colDate: 'COMPLETE DATE',
+      rows: Array.from({ length: 25 }, () => ({ task: '1 TO 1', date: '' }))
+    }
+  };
+
+  /* placeholders shown inside empty editable sheet fields */
+  const PLACEHOLDERS = {
+    'g.title': 'TITLE',
+    'g.byline': 'BY ...',
+    'g.goalLine': 'GOAL LINE',
+    'g.duration': 'DURATION',
+    'g.target': 'TARGET',
+    'g.actionLabel': 'ACTION',
+    'g.footer': 'FOOTER QUOTE',
+    'p.title': 'TITLE',
+    'p.subtitle': 'SUBTITLE',
+    'p.goalLabel': 'GOAL',
+    'p.goalValue': 'write your goal…',
+    'p.actionLabel': 'ACTION',
+    'p.colNo': 'NO.',
+    'p.colTask': 'TASK',
+    'p.colDate': 'COMPLETE DATE'
+  };
+
+  let state = load();
+
+  /* ---------------- tiny helpers ---------------- */
+  const $  = (s, r) => (r || document).querySelector(s);
+  const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function getPath(path) {
+    return path.split('.').reduce(
+      (o, k) => (o == null ? undefined : o[/^\d+$/.test(k) ? Number(k) : k]),
+      state
+    );
+  }
+
+  function setPath(path, value) {
+    const keys = path.split('.');
+    const last = keys.pop();
+    let o = state;
+    for (const k of keys) o = o[/^\d+$/.test(k) ? Number(k) : k];
+    o[/^\d+$/.test(last) ? Number(last) : last] = value;
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return clone(DEFAULTS);
+      const saved = JSON.parse(raw);
+      // shallow-merge so new fields in DEFAULTS still appear
+      return {
+        doc: saved.doc || 'goal',
+        g: Object.assign(clone(DEFAULTS.g), saved.g || {}),
+        p: Object.assign(clone(DEFAULTS.p), saved.p || {})
+      };
+    } catch (e) {
+      return clone(DEFAULTS);
+    }
+  }
+
+  let saveTimer = null;
+  let lastWrite = 0;
+
+  function writeNow() {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    lastWrite = Date.now();
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      flashSaved();
+    } catch (e) { /* storage may be unavailable — editing still works */ }
+  }
+
+  /* Debounced, but never starves: continuous typing still writes at
+     least every 500ms, and anything pending is flushed on unload. */
+  function save() {
+    if (Date.now() - lastWrite > 500) { writeNow(); return; }
+    if (saveTimer) return;
+    saveTimer = setTimeout(writeNow, 250);
+  }
+
+  window.addEventListener('pagehide', () => { if (saveTimer) writeNow(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && saveTimer) writeNow();
+  });
+
+  let hintTimer = null;
+  function flashSaved() {
+    const hint = $('#saveHint');
+    if (!hint) return;
+    hint.textContent = 'Saved';
+    hint.classList.add('show');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => hint.classList.remove('show'), 1200);
+  }
+
+  /* ---------------- syncing one value everywhere ---------------- */
+  /* Updates every mirror of `path` EXCEPT the element being typed in,
+     so the caret is never disturbed. */
+  function syncPath(path, value, source) {
+    $$('[data-bind="' + path + '"]').forEach(el => {
+      if (el !== source && el.value !== value) el.value = value;
+    });
+    $$('[data-edit="' + path + '"]').forEach(el => {
+      if (el !== source && el.textContent !== value) el.textContent = value;
+    });
+  }
+
+  function commit(path, value, source) {
+    setPath(path, value);
+    syncPath(path, value, source);
+    save();
+  }
+
+  /* ---------------- render: goal sheet action blocks ---------------- */
+  function renderBlocks() {
+    const sheet = $('#sheetBlocks');
+    const list  = $('#blockList');
+    sheet.innerHTML = '';
+    list.innerHTML  = '';
+
+    state.g.blocks.forEach((b, i) => {
+      /* --- sheet side --- */
+      const box = document.createElement('div');
+      box.className = 'gs-block';
+      box.innerHTML =
+        '<div class="gs-block-top" contenteditable="true" data-edit="g.blocks.' + i + '.top"></div>' +
+        '<div class="gs-block-bot">' +
+          '<span class="left" contenteditable="true" data-edit="g.blocks.' + i + '.left"></span>' +
+          '<span class="right" contenteditable="true" data-edit="g.blocks.' + i + '.right"></span>' +
+        '</div>';
+      $('.gs-block-top', box).textContent = b.top;
+      $('.left', box).textContent  = b.left;
+      $('.right', box).textContent = b.right;
+      sheet.appendChild(box);
+
+      /* --- panel side --- */
+      const item = document.createElement('div');
+      item.className = 'repeat-item';
+      item.innerHTML =
+        '<div class="repeat-head"><span>Block ' + (i + 1) + '</span>' +
+        '<button class="del" data-del-block="' + i + '" title="Remove block">&times;</button></div>' +
+        '<label>Heading <input type="text" data-bind="g.blocks.' + i + '.top" placeholder="25 (1 TO 1)"></label>' +
+        '<label>Left note <input type="text" data-bind="g.blocks.' + i + '.left" placeholder="3 CLIENT"></label>' +
+        '<label>Right note <input type="text" data-bind="g.blocks.' + i + '.right" placeholder="30000000/- TURNOVER"></label>';
+      $('[data-bind$=".top"]', item).value   = b.top;
+      $('[data-bind$=".left"]', item).value  = b.left;
+      $('[data-bind$=".right"]', item).value = b.right;
+      list.appendChild(item);
+    });
+  }
+
+  /* ---------------- render: action plan rows ---------------- */
+  function renderRows() {
+    const body = $('#sheetRows');
+    const list = $('#rowList');
+    body.innerHTML = '';
+    list.innerHTML = '';
+
+    state.p.rows.forEach((r, i) => {
+      /* --- sheet side --- */
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="t-no">' + (i + 1) + '</td>' +
+        '<td class="t-task" contenteditable="true" data-edit="p.rows.' + i + '.task"></td>' +
+        '<td class="t-date" contenteditable="true" data-edit="p.rows.' + i + '.date"></td>';
+      $('.t-task', tr).textContent = r.task;
+      $('.t-date', tr).textContent = r.date;
+      body.appendChild(tr);
+
+      /* --- panel side --- */
+      const item = document.createElement('div');
+      item.className = 'row-item';
+      item.innerHTML =
+        '<span class="rn">' + (i + 1) + '</span>' +
+        '<input type="text" data-bind="p.rows.' + i + '.task" placeholder="Task">' +
+        '<input type="text" data-bind="p.rows.' + i + '.date" placeholder="Date">' +
+        '<button class="del" data-del-row="' + i + '" title="Remove row">&times;</button>';
+      const inputs = $$('input', item);
+      inputs[0].value = r.task;
+      inputs[1].value = r.date;
+      list.appendChild(item);
+    });
+
+    $('#rowCount').value = state.p.rows.length;
+  }
+
+  /* ---------------- render: static fields ---------------- */
+  function renderStatic() {
+    Object.keys(PLACEHOLDERS).forEach(path => {
+      $$('[data-edit="' + path + '"]').forEach(el => el.setAttribute('data-ph', PLACEHOLDERS[path]));
+    });
+
+    $$('[data-bind]').forEach(el => {
+      const p = el.getAttribute('data-bind');
+      if (p.indexOf('blocks.') > -1 || p.indexOf('rows.') > -1) return;
+      const v = getPath(p);
+      if (v !== undefined) el.value = v;
+    });
+
+    $$('[data-edit]').forEach(el => {
+      const p = el.getAttribute('data-edit');
+      if (p.indexOf('blocks.') > -1 || p.indexOf('rows.') > -1) return;
+      const v = getPath(p);
+      if (v !== undefined) el.textContent = v;
+    });
+  }
+
+  function renderAll() {
+    renderStatic();
+    renderBlocks();
+    renderRows();
+    showDoc(state.doc);
+  }
+
+  /* ---------------- document switching ---------------- */
+  function showDoc(which) {
+    state.doc = which;
+    $('#sheet-goal').classList.toggle('hidden', which !== 'goal');
+    $('#sheet-plan').classList.toggle('hidden', which !== 'plan');
+    $('#form-goal').classList.toggle('hidden', which !== 'goal');
+    $('#form-plan').classList.toggle('hidden', which !== 'plan');
+    $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.doc === which));
+    save();
+  }
+
+  /* ---------------- zoom ---------------- */
+  let zoom = 1;
+  function applyZoom() {
+    const scaler = $('#scaler');
+    scaler.style.transform = 'scale(' + zoom + ')';
+    /* keep the scroll box the right height for the scaled sheet */
+    scaler.style.height = zoom === 1 ? '' : (297 * zoom) + 'mm';
+    $('#zoomLabel').textContent = Math.round(zoom * 100) + '%';
+  }
+  function fitZoom() {
+    const avail = $('#preview').clientWidth - 60;
+    const sheetPx = 210 * 96 / 25.4; /* A4 width in CSS px */
+    zoom = Math.min(1, Math.max(0.3, avail / sheetPx));
+    applyZoom();
+  }
+
+  /* ---------------- events ---------------- */
+
+  /* panel inputs -> state -> sheet */
+  document.addEventListener('input', e => {
+    const el = e.target;
+    const path = el.getAttribute && el.getAttribute('data-bind');
+    if (!path) return;
+    commit(path, el.value, el);
+  });
+
+  /* sheet contenteditable -> state -> panel */
+  document.addEventListener('input', e => {
+    const el = e.target;
+    const path = el.getAttribute && el.getAttribute('data-edit');
+    if (!path) return;
+    commit(path, el.textContent.replace(/ /g, ' ').trim(), el);
+  });
+
+  /* keep pasted content plain, and stop Enter making <div>s */
+  document.addEventListener('paste', e => {
+    if (!e.target.getAttribute || !e.target.getAttribute('data-edit')) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain').replace(/\s+/g, ' ');
+    document.execCommand('insertText', false, text);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.target.getAttribute && e.target.getAttribute('data-edit') && e.key === 'Enter') {
+      e.preventDefault();
+      e.target.blur();
+    }
+    /* Cmd/Ctrl + P -> our export (same thing, but keeps zoom reset tidy) */
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      exportPdf();
+    }
+  });
+
+  /* tabs */
+  $$('.tab').forEach(t => t.addEventListener('click', () => showDoc(t.dataset.doc)));
+
+  /* add / remove blocks */
+  $('#addBlock').addEventListener('click', () => {
+    state.g.blocks.push({ top: '', left: '', right: '' });
+    renderBlocks();
+    save();
+  });
+
+  $('#blockList').addEventListener('click', e => {
+    const btn = e.target.closest('[data-del-block]');
+    if (!btn) return;
+    state.g.blocks.splice(Number(btn.dataset.delBlock), 1);
+    renderBlocks();
+    save();
+  });
+
+  /* add / remove rows */
+  $('#addRow').addEventListener('click', () => {
+    state.p.rows.push({ task: '', date: '' });
+    renderRows();
+    save();
+  });
+
+  $('#rowList').addEventListener('click', e => {
+    const btn = e.target.closest('[data-del-row]');
+    if (!btn) return;
+    state.p.rows.splice(Number(btn.dataset.delRow), 1);
+    renderRows();
+    save();
+  });
+
+  $('#rowCount').addEventListener('change', e => {
+    let n = Math.max(1, Math.min(60, parseInt(e.target.value, 10) || 1));
+    const rows = state.p.rows;
+    while (rows.length > n) rows.pop();
+    while (rows.length < n) rows.push({ task: '', date: '' });
+    renderRows();
+    save();
+  });
+
+  $('#fillDefault').addEventListener('click', () => {
+    state.p.rows.forEach(r => { if (!r.task) r.task = '1 TO 1'; });
+    renderRows();
+    save();
+  });
+
+  /* backup / import / reset */
+  $('#btnSave').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'goaldocs-backup.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+
+  $('#btnLoad').addEventListener('click', () => $('#fileInput').click());
+
+  $('#fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const incoming = JSON.parse(reader.result);
+        state = {
+          doc: incoming.doc || 'goal',
+          g: Object.assign(clone(DEFAULTS.g), incoming.g || {}),
+          p: Object.assign(clone(DEFAULTS.p), incoming.p || {})
+        };
+        renderAll();
+        save();
+      } catch (err) {
+        alert('That file could not be read as a GoalDocs backup.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  $('#btnReset').addEventListener('click', () => {
+    if (!confirm('Reset this document back to the blank template?')) return;
+    const keep = state.doc;
+    state[keep] = clone(DEFAULTS[keep]);
+    renderAll();
+    save();
+  });
+
+  /* zoom controls */
+  $('#zoomIn').addEventListener('click', () => { zoom = Math.min(1.6, zoom + 0.1); applyZoom(); });
+  $('#zoomOut').addEventListener('click', () => { zoom = Math.max(0.3, zoom - 0.1); applyZoom(); });
+  $('#zoomFit').addEventListener('click', fitZoom);
+  window.addEventListener('resize', () => { if (window.innerWidth < 1400) fitZoom(); });
+
+  /* ---------------- PDF export ---------------- */
+  function exportPdf() {
+    const prev = zoom;
+    zoom = 1;
+    applyZoom();
+    /* let layout settle at 100% before the print dialog snapshots the page */
+    setTimeout(() => {
+      window.print();
+      zoom = prev;
+      applyZoom();
+    }, 60);
+  }
+
+  $('#btnPdf').addEventListener('click', exportPdf);
+
+  /* ---------------- boot ---------------- */
+  renderAll();
+  fitZoom();
+})();
+
+</script>
+</body>
+</html>
